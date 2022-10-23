@@ -1,6 +1,8 @@
 import pygame
+import os
 import sys
 import random
+from tkinter import messagebox
 
 
 class MainWindow:
@@ -8,7 +10,10 @@ class MainWindow:
     ROWS = 20
     window = pygame.display.set_mode((501, 501))
 
-    def draw_grid(self):
+    def __init__(self):
+        pygame.display.set_caption('Snake')
+
+    def draw_window_grid(self):
         size_between = MainWindow.SIZE // MainWindow.ROWS
         x = 0
         y = 0
@@ -27,7 +32,7 @@ class MainWindow:
         MainWindow.window.fill((0, 0, 0))
         s.draw(MainWindow.window)
         apple.draw(MainWindow.window)
-        self.draw_grid()
+        self.draw_window_grid()
         pygame.display.update()
 
 
@@ -48,6 +53,13 @@ class GameManager:
                 s.add_cube()
                 self.apple = self.apple_creator.new_apple()
             main_window.draw(self.apple)
+
+        self.retry_the_game()
+
+    def retry_the_game(self):
+        retry_game = messagebox.askretrycancel(title=f"Score: {len(self.snake.body)}", message="Play again?")
+        if retry_game:
+            os.execv(sys.executable, ['python'] + sys.argv)
 
     def check_collision(self):
         for idx, cube_instance in enumerate(self.snake.body):
@@ -81,7 +93,6 @@ class Cube:
 class Snake:
     body = []
     turns = {}
-    collided = False
 
     def __init__(self, color, pos):
         self.color = color
