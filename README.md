@@ -2,11 +2,13 @@
 Second game made with Pygame library.
 
 # Instructions
-• Download python.pyw
+• Download python.py
 
 • Install Pygame
 
 ```bash
-pip install pygame
+pip install pygame/pywin32
 ```
-• Run python.pyw
+• Run python.py
+
+• Enjoy the game!
