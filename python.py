@@ -1,65 +1,53 @@
-import pygame
-import os
-import sys
 import random
+import sys
 from tkinter import messagebox
+import pygame
+from win32 import win32gui
 
 
-class MainWindow:
+class GameManager:
     SIZE = 500
     ROWS = 20
     window = pygame.display.set_mode((501, 501))
 
     def __init__(self):
-        pygame.display.set_caption('Snake')
-
-    def draw_window_grid(self):
-        size_between = MainWindow.SIZE // MainWindow.ROWS
-        x = 0
-        y = 0
-        for i in range(MainWindow.ROWS):
-            x = x + size_between
-            y = y + size_between
-            self.draw_grid_lines(x, y)
-
-    def draw_grid_lines(self, x, y):
-        pygame.draw.line(MainWindow.window, (255, 255, 255), (0, 0), (0, MainWindow.SIZE))
-        pygame.draw.line(MainWindow.window, (255, 255, 255), (0, 0), (MainWindow.SIZE, 0))
-        pygame.draw.line(MainWindow.window, (255, 255, 255), (x, 0), (x, MainWindow.SIZE))
-        pygame.draw.line(MainWindow.window, (255, 255, 255), (0, y), (MainWindow.SIZE, y))
-
-    def draw(self, apple):
-        MainWindow.window.fill((0, 0, 0))
-        s.draw(MainWindow.window)
-        apple.draw(MainWindow.window)
-        self.draw_window_grid()
-        pygame.display.update()
-
-
-class GameManager:
-    def __init__(self, snake, apple_creator):
-        self.snake = snake
-        self.apple_creator = apple_creator
+        self.snake = Snake((0, 255, 0), (10, 10))
+        self.apple_creator = AppleCreator(self.snake)
 
     def start_game(self):
         self.apple = self.apple_creator.new_apple()
+        pygame.event.clear()
         while True:
             self.check_collision()
             if self.snake.collided:
                 break
-            s.move()
+            self.snake.move()
             pygame.time.delay(100)
-            if s.body[0].pos == self.apple.pos:
-                s.add_cube()
+            if self.snake.body[0].pos == self.apple.pos:
+                self.snake.add_cube()
                 self.apple = self.apple_creator.new_apple()
-            main_window.draw(self.apple)
+            self.draw(self.apple)
 
         self.retry_the_game()
 
     def retry_the_game(self):
-        retry_game = messagebox.askretrycancel(title=f"Score: {len(self.snake.body)}", message="Play again?")
+        retry_game = messagebox.askretrycancel(title=f"Score: {len(self.snake.body)}",
+                                               message="Play again?")
+
         if retry_game:
-            os.execv(sys.executable, ['python'] + sys.argv)
+            del Snake.body[:-1]
+            Snake.turns.clear()
+            Snake.body[-1].pos = (10, 10)
+            self.snake.head = Snake.body[-1]
+            self.snake.collided = False
+            self.snake.dirx = 0
+            self.snake.diry = 1
+
+            hwnd = pygame.display.get_wm_info()["window"]
+            win32gui.BringWindowToTop(hwnd)
+            self.start_game()
+        else:
+            print()
 
     def check_collision(self):
         for idx, cube_instance in enumerate(self.snake.body):
@@ -68,9 +56,31 @@ class GameManager:
             if self.snake.head.pos == cube_instance.pos:
                 self.snake.collided = True
 
+    def draw_grid(self):
+        size_between = GameManager.SIZE // GameManager.ROWS
+        x = 0
+        y = 0
+        for i in range(GameManager.ROWS):
+            x = x + size_between
+            y = y + size_between
+            self.draw_grid_lines(x, y)
+
+    def draw_grid_lines(self, x, y):
+        pygame.draw.line(GameManager.window, (255, 255, 255), (0, 0), (0, GameManager.SIZE))
+        pygame.draw.line(GameManager.window, (255, 255, 255), (0, 0), (GameManager.SIZE, 0))
+        pygame.draw.line(GameManager.window, (255, 255, 255), (x, 0), (x, GameManager.SIZE))
+        pygame.draw.line(GameManager.window, (255, 255, 255), (0, y), (GameManager.SIZE, y))
+
+    def draw(self, apple):
+        GameManager.window.fill((0, 0, 0))
+        self.snake.draw(GameManager.window)
+        apple.draw(GameManager.window)
+        self.draw_grid()
+        pygame.display.update()
+
 
 class Cube:
-    rows = MainWindow.ROWS
+    rows = GameManager.ROWS
 
     def __init__(self, start, dirx=1, diry=0, color=(0, 255, 0)):
         self.pos = start
@@ -84,7 +94,7 @@ class Cube:
         self.pos = (self.pos[0] + self.dirx, self.pos[1] + self.diry)
 
     def draw(self, surface):
-        dis = MainWindow.SIZE // MainWindow.ROWS
+        dis = GameManager.SIZE // GameManager.ROWS
         rw = self.pos[0]
         cm = self.pos[1]
         pygame.draw.rect(surface, self.color, (rw * dis + 1, cm * dis + 1, dis, dis))
@@ -107,9 +117,7 @@ class Snake:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
             keys = pygame.key.get_pressed()
-
             if keys[pygame.K_LEFT]:
                 self.dirx = -1
                 self.diry = 0
@@ -184,8 +192,8 @@ class AppleCreator:
     def add_apple_object(self):
         positions = self.snake.body
         while True:
-            x = random.randrange(MainWindow.ROWS)
-            y = random.randrange(MainWindow.ROWS)
+            x = random.randrange(GameManager.ROWS)
+            y = random.randrange(GameManager.ROWS)
             if len(list(filter(lambda z: z.pos == (x, y), positions))) > 0:  #
                 continue
             else:
@@ -196,13 +204,10 @@ class AppleCreator:
         return Cube(self.add_apple_object(), color=(255, 0, 0))
 
 
-if __name__ == "__main__":
-    s = Snake((0, 255, 0), (10, 10))
-
-    main_window = MainWindow()
-
-    apple_creator = AppleCreator(s)
-    apple = apple_creator.new_apple()
-
-    game_manager = GameManager(s, apple_creator)
+def main():
+    game_manager = GameManager()
     game_manager.start_game()
+
+
+if __name__ == "__main__":
+    main()
