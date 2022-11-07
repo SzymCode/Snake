@@ -12,3 +12,7 @@ pip install pygame/pywin32
 • Run python.py
 
 • Enjoy the game!
+
+# Preview image
+
+![app_preview](https://github.com/SzymCode/Snake/blob/main/preview.png)
