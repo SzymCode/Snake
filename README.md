@@ -1,7 +1,7 @@
 # Snake
 Second game made with Pygame library.
 
-# Instructions
+## Instructions
 • Download python.py
 
 • Install Pygame
@@ -13,6 +13,6 @@ pip install pygame/pywin32
 
 • Enjoy the game!
 
-# Preview image
+## Preview image
 
 ![app_preview](https://github.com/SzymCode/Snake/blob/main/preview.png)
